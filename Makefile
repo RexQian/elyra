@@ -269,6 +269,23 @@ elyra-image: # Build Elyra stand-alone container image
 		--build-arg ELYRA_VERSION=$(ELYRA_VERSION) \
 		build/docker/;
 
+elyra-image-amd64: # Build Elyra stand-alone container image
+	@mkdir -p build/docker
+	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
+	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
+	cp etc/docker/elyra/requirements.txt build/docker/requirements.txt
+	@mkdir -p build/docker/elyra
+	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker/
+	$(CONTAINER_EXEC) buildx build \
+		--platform linux/amd64 \
+        --progress=plain \
+        --output=type=docker \
+		--tag docker.io/$(ELYRA_IMAGE) \
+		--tag quay.io/$(ELYRA_IMAGE) \
+		--build-arg TAG=$(TAG) \
+		--build-arg ELYRA_VERSION=$(ELYRA_VERSION) \
+		build/docker/;
+
 publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 	# this is a privileged operation; a `docker login` might be required
 	$(CONTAINER_EXEC) push docker.io/$(ELYRA_IMAGE)

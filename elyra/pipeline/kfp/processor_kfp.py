@@ -1073,20 +1073,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         """
         elyra_github_org = os.getenv("ELYRA_GITHUB_ORG", "elyra-ai")
         elyra_github_branch = os.getenv("ELYRA_GITHUB_BRANCH", "main" if "dev" in __version__ else "v" + __version__)
-        elyra_bootstrap_script_url = os.getenv(
-            "ELYRA_BOOTSTRAP_SCRIPT_URL",
-            f"https://raw.githubusercontent.com/{elyra_github_org}/elyra/{elyra_github_branch}/elyra/kfp/bootstrapper.py",  # noqa E501
-        )
-        elyra_requirements_url = os.getenv(
-            "ELYRA_REQUIREMENTS_URL",
-            f"https://raw.githubusercontent.com/{elyra_github_org}/"
-            f"elyra/{elyra_github_branch}/etc/generic/requirements-elyra.txt",
-        )
-        elyra_requirements_url_py37 = os.getenv(
-            "elyra_requirements_url_py37",
-            f"https://raw.githubusercontent.com/{elyra_github_org}/"
-            f"elyra/{elyra_github_branch}/etc/generic/requirements-elyra-py37.txt",
-        )
+
+        # get config from bucket elyra
+        elyra_bootstrap_script_url = f"{cos_endpoint}/elyra/kfp/bootstrapper.py"
+        elyra_requirements_url = f"{cos_endpoint}/elyra/etc/generic/requirements-elyra.txt"
+        elyra_requirements_url_py37 = f"{cos_endpoint}/elyra/etc/generic/requirements-elyra-py37.txt"
 
         if is_crio_runtime:
             container_work_dir = CRIO_VOL_WORKDIR_PATH
@@ -1120,6 +1111,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             )
 
         bootstrapper_command = [
+            f"python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple/ && "
             f"python3 -m pip install {python_user_lib_path_target} packaging && "
             "python3 -m pip freeze > requirements-current.txt && "
             "python3 bootstrapper.py "

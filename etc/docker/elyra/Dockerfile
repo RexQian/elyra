@@ -30,15 +30,17 @@ COPY requirements.txt ${ELYRA_PACKAGE} ./
 
 USER root
 RUN chown jovyan:users ./requirements.txt ./"${ELYRA_PACKAGE}"
+RUN apt-get update && apt-get install -y gcc python3-dev
+
 USER jovyan
 
 RUN ls -al /home/jovyan
 
 # Install Elyra
-RUN python3 -m pip install --quiet --no-cache-dir "$ELYRA_PACKAGE""$ELYRA_EXTRAS" && rm "$ELYRA_PACKAGE"
+RUN python3 -m pip install --quiet --no-cache-dir "$ELYRA_PACKAGE""$ELYRA_EXTRAS" -i https://pypi.tuna.tsinghua.edu.cn/simple/ && rm "$ELYRA_PACKAGE"
 
 # Install custom requirements
-RUN python3 -m pip install -r requirements.txt && rm requirements.txt
+RUN python3 -m pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/ && rm requirements.txt
 
 # Install component examples catalogs
 #  - this wail fail if the 'kfp-examples' pip extra is not installed
